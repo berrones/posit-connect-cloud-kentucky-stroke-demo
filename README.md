@@ -11,4 +11,4 @@ quarto render
 ## Notes
 
 - The stroke data is fake and generated at render time.
-- The map uses Kentucky county polygons from the CRAN `maps` package.
+- The map uses a bundled Kentucky county GeoJSON file derived from U.S. Census cartographic boundary shapefiles.

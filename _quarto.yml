@@ -1,5 +1,7 @@
 project:
   title: "kentucky-stroke-demo"
+  resources:
+    - data/
 
 format:
   html:
