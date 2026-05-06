@@ -8,27 +8,29 @@ This is a minimal Quarto document for testing Posit Connect Cloud deployment. Th
 ```{r}
 library(dplyr)
 library(ggplot2)
-library(sf)
+library(maps)
 
-counties <- st_read("data/kentucky_counties.geojson", quiet = TRUE) |>
-  st_transform(4326)
+counties <- map_data("county") |>
+  filter(region == "kentucky") |>
+  mutate(
+    county = sub(",.*$", "", sub("^kentucky,", "", subregion))
+  )
 
 set.seed(20260506)
 
 stroke_data <- counties |>
-  st_drop_geometry() |>
+  distinct(county) |>
   transmute(
-    GEOID,
-    county = NAME,
+    county,
     stroke_rate = round(runif(n(), min = 2.8, max = 7.6), 1),
     stroke_cases = sample(40:240, size = n(), replace = TRUE)
   )
 
 map_data <- counties |>
-  left_join(stroke_data, by = "GEOID")
+  left_join(stroke_data, by = "county")
 
 ggplot(map_data) +
-  geom_sf(aes(fill = stroke_rate), color = "white", linewidth = 0.15) +
+  geom_polygon(aes(long, lat, group = group, fill = stroke_rate), color = "white", linewidth = 0.1) +
   scale_fill_gradient(
     low = "#d8eef7",
     high = "#c2410c",
@@ -37,8 +39,9 @@ ggplot(map_data) +
   labs(
     title = "Fake Stroke Rates Across Kentucky Counties",
     subtitle = "Synthetic data for deployment testing only",
-    caption = "County boundaries: U.S. Census Bureau cartographic boundary shapefiles"
+    caption = "County boundaries: maps package county polygons"
   ) +
+  coord_quickmap() +
   theme_minimal(base_size = 13) +
   theme(
     panel.grid.major = element_blank(),
