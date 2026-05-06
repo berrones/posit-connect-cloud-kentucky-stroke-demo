@@ -1,0 +1,7 @@
+/.quarto/
+/.cache/
+/.git-local/
+/index.html
+/index_files/
+
+**/*.quarto_ipynb

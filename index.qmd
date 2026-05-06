@@ -1,0 +1,58 @@
+---
+title: "Kentucky Stroke Map Demo"
+subtitle: "Fake county-level stroke rates"
+---
+
+This is a minimal Quarto document for testing Posit Connect Cloud deployment. The map below uses Kentucky county boundaries stored in this repository and joins them to a small fake stroke dataset generated at render time.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(sf)
+
+counties <- st_read("data/kentucky_counties.geojson", quiet = TRUE) |>
+  st_transform(4326)
+
+set.seed(20260506)
+
+stroke_data <- counties |>
+  st_drop_geometry() |>
+  transmute(
+    GEOID,
+    county = NAME,
+    stroke_rate = round(runif(n(), min = 2.8, max = 7.6), 1),
+    stroke_cases = sample(40:240, size = n(), replace = TRUE)
+  )
+
+map_data <- counties |>
+  left_join(stroke_data, by = "GEOID")
+
+ggplot(map_data) +
+  geom_sf(aes(fill = stroke_rate), color = "white", linewidth = 0.15) +
+  scale_fill_gradient(
+    low = "#d8eef7",
+    high = "#c2410c",
+    name = "Stroke rate (%)"
+  ) +
+  labs(
+    title = "Fake Stroke Rates Across Kentucky Counties",
+    subtitle = "Synthetic data for deployment testing only",
+    caption = "County boundaries: U.S. Census Bureau cartographic boundary shapefiles"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    plot.title.position = "plot",
+    legend.position = "right"
+  )
+```
+
+```{r}
+stroke_data |>
+  arrange(desc(stroke_rate)) |>
+  slice_head(n = 10)
+```
+
+The table above shows the counties with the highest fake stroke rates in this demo.
